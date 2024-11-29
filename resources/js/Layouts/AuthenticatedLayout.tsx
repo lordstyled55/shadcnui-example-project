@@ -2,8 +2,9 @@ import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
-import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, ReactNode, useState } from 'react';
+import {Link, usePage} from '@inertiajs/react';
+import {PropsWithChildren, ReactNode, useState} from 'react';
+import {Toaster} from "@/Components/ui/toaster";
 
 export default function Authenticated({
     header,
@@ -16,6 +17,7 @@ export default function Authenticated({
 
     return (
         <div className="min-h-screen bg-gray-100">
+            <Toaster/>
             <nav className="border-b border-gray-100 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -32,6 +34,12 @@ export default function Authenticated({
                                     active={route().current('dashboard')}
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    href={route('users.index')}
+                                    active={route().current('users.*')}
+                                >
+                                    Users
                                 </NavLink>
                             </div>
                         </div>
@@ -136,6 +144,12 @@ export default function Authenticated({
                             active={route().current('dashboard')}
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('users.index')}
+                            active={route().current('users.*')}
+                        >
+                            Users
                         </ResponsiveNavLink>
                     </div>
 

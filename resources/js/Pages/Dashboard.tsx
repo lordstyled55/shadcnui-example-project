@@ -1,13 +1,18 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head } from '@inertiajs/react';
+import {Head, Link} from '@inertiajs/react';
+import {Breadcrumb, BreadcrumbItem, BreadcrumbList} from "@/Components/ui/breadcrumb";
 
 export default function Dashboard() {
     return (
         <AuthenticatedLayout
             header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Dashboard
-                </h2>
+                <Breadcrumb>
+                    <BreadcrumbList>
+                        <BreadcrumbItem>
+                            <Link href={route('dashboard')}>Dashboard</Link>
+                        </BreadcrumbItem>
+                    </BreadcrumbList>
+                </Breadcrumb>
             }
         >
             <Head title="Dashboard" />
