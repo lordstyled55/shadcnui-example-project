@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Head } from '@inertiajs/react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
@@ -30,13 +30,13 @@ const categoryConfig = {
 };
 
 export default function CozySpace() {
-  const [message, setMessage] = useState('');
-  const [selectedPrompt, setSelectedPrompt] = useState<string>('remind');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [showSpecialNote, setShowSpecialNote] = useState(false);
+  const [message, setMessage] = React.useState('');
+  const [selectedPrompt, setSelectedPrompt] = React.useState<string>('remind');
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const [showSpecialNote, setShowSpecialNote] = React.useState(false);
 
   // Load messages from localStorage on component mount
-  useEffect(() => {
+  React.useEffect(() => {
     const saved = localStorage.getItem('cozy-messages');
     if (saved) {
       const parsed = JSON.parse(saved);
@@ -45,7 +45,7 @@ export default function CozySpace() {
   }, []);
 
   // Save messages to localStorage whenever messages change
-  useEffect(() => {
+  React.useEffect(() => {
     localStorage.setItem('cozy-messages', JSON.stringify(messages));
   }, [messages]);
 
