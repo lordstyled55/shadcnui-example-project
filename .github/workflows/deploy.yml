@@ -1,0 +1,138 @@
+name: Deploy Laravel App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip
+        coverage: none
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Install PHP Dependencies
+      run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+    - name: Install Node Dependencies
+      run: npm ci
+
+    - name: Generate key
+      run: php artisan key:generate
+
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Create Database
+      run: |
+        mkdir -p database
+        touch database/database.sqlite
+
+    - name: Create public/build directory and empty manifest
+      run: |
+        mkdir -p public/build
+        echo '{}' > public/build/manifest.json
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Verify build artifacts
+      run: |
+        echo "Contents of public/build:"
+        ls -la public/build/
+        echo "Manifest file content:"
+        cat public/build/manifest.json
+
+    - name: Execute tests (Unit and Feature tests) via PHPUnit
+      env:
+        DB_CONNECTION: sqlite
+        DB_DATABASE: database/database.sqlite
+      run: php artisan test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, dom, fileinfo, mysql, gd, zip
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install PHP Dependencies
+      run: composer install --optimize-autoloader --no-dev
+
+    - name: Install Node Dependencies
+      run: npm ci
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Create deployment artifact
+      env:
+        GITHUB_SHA: ${{ github.sha }}
+      run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules --exclude=.env .
+
+    - name: Store artifact for distribution
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-build
+        path: ${{ github.sha }}.tar.gz
+
+    # Example deployment to a server via SSH
+    # Uncomment and configure the following steps for actual deployment
+    # - name: Deploy to server
+    #   uses: appleboy/ssh-action@v1.0.3
+    #   with:
+    #     host: ${{ secrets.HOST }}
+    #     username: ${{ secrets.USERNAME }}
+    #     key: ${{ secrets.KEY }}
+    #     port: ${{ secrets.PORT }}
+    #     script: |
+    #       cd /path/to/your/app
+    #       wget https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/app-build
+    #       tar -xzf app-build.tar.gz
+    #       php artisan migrate --force
+    #       php artisan config:cache
+    #       php artisan route:cache
+    #       php artisan view:cache
+    #       sudo systemctl restart php8.2-fpm
+    #       sudo systemctl restart nginx
