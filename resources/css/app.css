@@ -126,13 +126,127 @@
   }
 }
 
-/* Cat paw animations */
+/* Enhanced Animations */
 @keyframes paw-wiggle {
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-5deg); }
   75% { transform: rotate(5deg); }
 }
 
+@keyframes float-heart {
+  0% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+  50% { 
+    transform: translateY(-10px) rotate(5deg);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.6;
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% { 
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% { 
+    transform: scale(1.02);
+    opacity: 0.9;
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% { 
+    opacity: 0;
+    transform: scale(0.8) rotate(0deg);
+  }
+  50% { 
+    opacity: 1;
+    transform: scale(1.2) rotate(180deg);
+  }
+}
+
+@keyframes message-appear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes celebration-burst {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.5) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes gentle-breathing {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 .paw-wiggle {
   animation: paw-wiggle 3s ease-in-out infinite;
+}
+
+.float-heart {
+  animation: float-heart 4s ease-in-out infinite;
+}
+
+.gentle-pulse {
+  animation: gentle-pulse 3s ease-in-out infinite;
+}
+
+.sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.message-appear {
+  animation: message-appear 0.6s ease-out forwards;
+}
+
+.celebration-burst {
+  animation: celebration-burst 1s ease-out forwards;
+}
+
+.gentle-breathing {
+  animation: gentle-breathing 4s ease-in-out infinite;
+}
+
+/* Weather-based gradients */
+.sunny-gradient {
+  background: linear-gradient(135deg, #fef7cd 0%, #fce7f3 50%, #f8fafc 100%);
+}
+
+.rainy-gradient {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 50%, #fce7f3 100%);
+}
+
+.cloudy-gradient {
+  background: linear-gradient(135deg, #f1f5f9 0%, #fce7f3 50%, #f8fafc 100%);
+}
+
+/* Special effects */
+.glow-effect {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+}
+
+.cozy-shadow {
+  box-shadow: 0 4px 25px -5px rgba(236, 72, 153, 0.25);
 }
