@@ -56,14 +56,26 @@ jobs:
         mkdir -p database
         touch database/database.sqlite
 
+    - name: Create public/build directory and empty manifest
+      run: |
+        mkdir -p public/build
+        echo '{}' > public/build/manifest.json
+
+    - name: Build frontend assets
+      run: npm run build
+
+    - name: Verify build artifacts
+      run: |
+        echo "Contents of public/build:"
+        ls -la public/build/
+        echo "Manifest file content:"
+        cat public/build/manifest.json
+
     - name: Execute tests (Unit and Feature tests) via PHPUnit
       env:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
       run: php artisan test
-
-    - name: Build frontend assets
-      run: npm run build
 
   deploy:
     needs: test
