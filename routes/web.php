@@ -23,6 +23,20 @@ Route::get('/cozy', function () {
     return Inertia::render('CozySpace');
 })->name('cozy-space');
 
+Route::get('/dos-monitor', function () {
+    return Inertia::render('DosMonitor');
+})->name('dos-monitor');
+
+// DOS Monitor API routes (no authentication required for external access)
+Route::prefix('api/dos')->group(function () {
+    Route::post('/metrics', [App\Http\Controllers\DosMonitorController::class, 'storeMetrics']);
+    Route::get('/metrics', [App\Http\Controllers\DosMonitorController::class, 'getMetrics']);
+    Route::get('/history', [App\Http\Controllers\DosMonitorController::class, 'getHistory']);
+    Route::delete('/metrics', [App\Http\Controllers\DosMonitorController::class, 'clearMetrics']);
+    Route::get('/health', [App\Http\Controllers\DosMonitorController::class, 'health']);
+    Route::get('/status', [App\Http\Controllers\DosMonitorController::class, 'status']);
+});
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
