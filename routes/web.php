@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DosMonitorController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -22,6 +23,13 @@ Route::get('/dashboard', function () {
 Route::get('/cozy', function () {
     return Inertia::render('CozySpace');
 })->name('cozy-space');
+
+// DOS Monitor Routes
+Route::get('/dos-monitor', [DosMonitorController::class, 'dashboard'])->name('dos-monitor');
+Route::post('/api/dos-metrics', [DosMonitorController::class, 'storeMetrics']);
+Route::get('/api/dos-metrics/current', [DosMonitorController::class, 'getCurrentMetrics']);
+Route::get('/api/dos-metrics/historical', [DosMonitorController::class, 'getHistoricalData']);
+Route::get('/api/dos-metrics/stats', [DosMonitorController::class, 'getStats']);
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
