@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dos-monitor-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=dos_monitor
+      - DB_USERNAME=dos_monitor_user
+      - DB_PASSWORD=dos_monitor_password
+    volumes:
+      - ./storage:/var/www/storage
+      - ./bootstrap/cache:/var/www/bootstrap/cache
+    depends_on:
+      - mysql
+    networks:
+      - dos-monitor-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: dos-monitor-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: dos_monitor
+      MYSQL_USER: dos_monitor_user
+      MYSQL_PASSWORD: dos_monitor_password
+      MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - dos-monitor-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: dos-monitor-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - dos-monitor-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: dos-monitor-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-dos-monitor.conf:/etc/nginx/conf.d/default.conf
+      - ./public:/var/www/public
+    depends_on:
+      - app
+    networks:
+      - dos-monitor-network
+
+volumes:
+  mysql_data:
+
+networks:
+  dos-monitor-network:
+    driver: bridge

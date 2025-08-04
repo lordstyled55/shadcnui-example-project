@@ -1,0 +1,37 @@
+[Unit]
+Description=DOS Monitor Laravel Application
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/dos-monitor
+ExecStart=/usr/bin/php artisan serve --host=0.0.0.0 --port=8000
+ExecReload=/bin/kill -USR1 $MAINPID
+Restart=always
+RestartSec=3
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dos-monitor
+
+# Environment variables
+Environment=APP_ENV=production
+Environment=APP_DEBUG=false
+Environment=APP_URL=http://your-domain.com
+Environment=DB_CONNECTION=mysql
+Environment=DB_HOST=127.0.0.1
+Environment=DB_PORT=3306
+Environment=DB_DATABASE=dos_monitor
+Environment=DB_USERNAME=dos_monitor_user
+Environment=DB_PASSWORD=your_secure_password
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/dos-monitor/storage /var/www/dos-monitor/bootstrap/cache
+
+[Install]
+WantedBy=multi-user.target

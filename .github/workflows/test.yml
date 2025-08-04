@@ -1,0 +1,112 @@
+name: Test DOS Monitor
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: laravel_test
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql, pgsql, pdo_pgsql, gd, exif, fileinfo, curl, zip, pcntl, bcmath, soap, bz2, calendar, dom, enchant, ffi, ftp, gettext, gmp, imap, ldap, mysqli, odbc, opcache, pcntl, pdo_odbc, pspell, shmop, snmp, sockets, sysvmsg, sysvsem, sysvshm, tidy, xmlreader, xmlrpc, xmlwriter, xsl, zend_opcache
+        coverage: xdebug
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Copy .env
+      run: php -r "file_exists('.env') || copy('.env.example', '.env');"
+
+    - name: Install Dependencies
+      run: |
+        composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+        npm ci
+
+    - name: Generate key
+      run: php artisan key:generate
+
+    - name: Directory Permissions
+      run: chmod -R 777 storage bootstrap/cache
+
+    - name: Create Database
+      run: |
+        mysql -h 127.0.0.1 -P 3306 -u root -ppassword -e "CREATE DATABASE IF NOT EXISTS laravel_test;"
+
+    - name: Execute tests (Unit and Feature tests) via PHPUnit
+      env:
+        DB_CONNECTION: mysql
+        DB_HOST: 127.0.0.1
+        DB_PORT: 3306
+        DB_DATABASE: laravel_test
+        DB_USERNAME: root
+        DB_PASSWORD: password
+      run: vendor/bin/phpunit
+
+    - name: Build assets
+      run: npm run build
+
+    - name: Test API endpoints
+      run: |
+        # Start Laravel server in background
+        php artisan serve --host=127.0.0.1 --port=8000 &
+        SERVER_PID=$!
+        
+        # Wait for server to start
+        sleep 10
+        
+        # Test API endpoints
+        echo "Testing API endpoints..."
+        
+        # Health check
+        curl -f http://127.0.0.1:8000/api/dos/health || exit 1
+        
+        # Status check
+        curl -f http://127.0.0.1:8000/api/dos/status || exit 1
+        
+        # Metrics endpoint
+        curl -f http://127.0.0.1:8000/api/dos/metrics || exit 1
+        
+        # Test posting metrics
+        curl -f -X POST http://127.0.0.1:8000/api/dos/metrics \
+          -H "Content-Type: application/json" \
+          -d '{"requests_per_second": 1000, "total_requests": 5000, "active_connections": 250, "average_response_time": 75.5, "success_rate": 95.0, "error_rate": 5.0, "target_url": "http://test-server.com", "status": "running", "start_time": "2024-01-15T10:00:00Z"}' || exit 1
+        
+        # Test dashboard page
+        curl -f http://127.0.0.1:8000/dos-monitor || exit 1
+        
+        echo "All API tests passed!"
+        
+        # Stop server
+        kill $SERVER_PID
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: |
+          storage/logs/
+          coverage/
+        retention-days: 7
